@@ -1,308 +1,253 @@
 # Nexus
 
-<div align="center">
-
 **Multi-LLM Orchestrated CLI — Multi-model, role-based AI system with persistent memory**
 
-</div>
-
-Nexus is a terminal-based multi-agent AI system that coordinates multiple LLM-powered agents in a panel discussion format. An orchestrator analyzes your request, selects the right specialist agents, lets them debate and contribute, then synthesizes a final response. Think of it as a panel of AI experts working together on your problem.
-
-## Features
-
-- **Multi-Agent Panel** — 6 built-in specialist agents (Planner, Coder, Executor, Researcher, Critic, Summarizer) coordinated by an Orchestrator
-- **9 LLM Providers** — OpenAI, Anthropic Claude, Google Gemini, DeepSeek, Ollama, Groq, Fireworks, LM Studio, Z.AI — all through a unified interface
-- **Streaming UI** — Token-by-token real-time output from agents with live cursor indicator
-- **Agent Tool Access** — Agents can call shell commands, read/write files, and search the web via native function calling
-- **Critic Safety Gate** — Shell commands are reviewed by the Critic agent before execution (APPROVED / REJECTED with DANGER/WARNING/INFO severity)
-- **Persistent Memory** — SQLite-backed vector memory with Ollama nomic-embed-text (768-dim) or hash-based fallback (384-dim)
-- **Session Resume** — All chats persist to SQLite. Resume past sessions with `nexus --resume <id>` or `/resume 1`
-- **User Profiles** — Per-user preferences, project contexts, shortcuts, and response styles
-- **Doctor** — Built-in health check: `/doctor` or `nexus --doctor` diagnoses providers, agents, embedding, memory
-- **In-App Config** — `/config show|model|agent` to view and change settings without leaving the CLI
-- **Session Export** — Export conversations as JSON or Markdown
-- **Custom Agents** — Define your own agents in `~/.nexus/agents.yaml`
-- **Terminal UI** — Built with Ink (React for the terminal) with color-coded agent output
+Nexus is a terminal-based multi-agent AI system. An orchestrator analyzes your request, selects specialist agents, lets them debate and contribute, then synthesizes a final response. Like a panel of AI experts working together.
 
 ## Installation
 
 ```bash
-git clone <repo-url>
+npm i -g @baristhedeveloper/nexus
+nexus
+```
+
+Or from source:
+
+```bash
+git clone https://github.com/BarisTheDeveloper/nexus.git
 cd nexus
-pnpm install    # or npm install
-pnpm build
+pnpm install && pnpm build
+pnpm dev
+```
+
+Update to latest:
+
+```bash
+nexus-update check
+nexus-update install
 ```
 
 ## Quick Start
 
-### 1. Configure Providers
+### 1. Add a provider
 
-Create `~/.nexus/config.yaml`:
+```
+nexus
+/new provider
+```
+
+Or manually create `~/.nexus/config.yaml`:
 
 ```yaml
 providers:
   - id: deepseek
-    apiKey: ${DEEP...Y}
-  - id: openai
-    apiKey: ${OPEN...Y}
-  - id: anthropic
-    apiKey: ${ANTH...Y}
-  - id: ollama                  # local, no key needed
-defaultProvider: deepseek
+    apiKey: ${DEEPSEEK_API_KEY}  - id: openai
+    apiKey: ${DEEPSEEK_API_KEY}defaultProvider: deepseek
 defaultModel: deepseek-chat
 criticApproval: true
 ```
 
-Environment variables (`${VAR}` syntax) are resolved from your shell environment.
+### 2. Chat
 
-### 2. Launch
+Just type. Nexus will analyze, route to agents, and stream responses.
 
-```bash
-pnpm dev
-# or: npm run dev
-# or after build: npm start
-```
+## Features
 
-### 3. Chat
-
-Just type your question and press Enter. Nexus will:
-1. Query memory for relevant context
-2. Have the Orchestrator analyze your task
-3. Route to the right specialist agents
-4. Stream agent responses token-by-token in real-time
-5. Synthesize a final response
-6. Persist the entire conversation for later resume
-
-## CLI Usage
-
-```bash
-nexus                        # Start a new session
-nexus --sessions             # List all saved sessions
-nexus --resume <session-id>  # Resume by full or partial ID
-nexus --resume-no 1          # Resume the most recent session
-nexus --version              # Show version
-```
+- **6 built-in agents** — Planner, Researcher, Coder, Executor, Critic, Summarizer
+- **9 LLM providers** — OpenAI, Anthropic, Gemini, DeepSeek, Ollama, Groq, Fireworks, LM Studio, Z.AI
+- **Streaming UI** — Token-by-token with thinking animation
+- **Agent tools** — Shell, file, web search, GitHub (PR, issue, clone), background tasks
+- **Function calling** — Native tool use on OpenAI, DeepSeek, Gemini, Ollama
+- **Critic safety gate** — Shell commands reviewed before execution
+- **Persistent memory** — SQLite + Ollama embeddings (768-dim) or hash fallback
+- **Session resume** — `nexus --sessions` / `nexus --resume <id>`
+- **Custom agents** — `/new agent` wizard or `agents.yaml`
+- **Permission system** — `/allow all | safe | ask`
+- **Cost tracker** — `/cost` per agent per session
+- **MCP + Skills** — External tool servers, skill registry
+- **Auto-updater** — `nexus-update check | install`
+- **Markdown rendering** — Bold, code blocks, lists
+- **Paste detection** — Large pastes collapsed automatically
 
 ## Commands
 
 | Command | Description |
 |---------|-------------|
-| `/help` | Toggle help overlay |
-| `/agents` | List active agents and their models/tools |
+| `/help` | Toggle help |
+| `/agents` | List agents with models & tools |
 | `/providers` | Show configured providers |
-| `/model <agent> <model>` | Change an agent's model (e.g. `/model coder deepseek-chat`) |
-| `/config show` | Show current configuration |
-| `/config model <agent> <model>` | Change agent model |
-| `/config agent <id>` | Show agent details (tools, capabilities, provider) |
-| `/doctor` | Run system health check (providers, agents, embedding, memory, tools) |
-| `/sessions` | List saved sessions with previews |
-| `/resume <id-or-number>` | Resume a past session |
-| `/profile` | Show user profile |
-| `/think <query>` | Use Planner + Critic only |
-| `/code <request>` | Use Coder agent only |
-| `/exec <command>` | Run shell command (with Critic safety review) |
-| `/memory search <query>` | Search session memory |
-| `/memory list [type]` | List memory entries by type |
-| `/memory clear` | Clear all memory |
-| `/export [json]` | Export session (default: markdown, add `json` for JSON) |
-| `/status` | Show system status |
+| `/models [provider]` | Browse models from API |
+| `/model <agent> <model>` | Assign model |
+| `/new agent` | 🧙 Wizard: create custom agent |
+| `/new provider` | 🧙 Wizard: add provider |
+| `/doctor` | System health check |
+| `/sessions` | List saved sessions |
+| `/resume <id-or-#>` | Resume past session |
+| `/config show` | View config |
+| `/config agent add/remove` | Manage agents |
+| `/config provider add/remove` | Manage providers |
+| `/think <query>` | Planner + Critic |
+| `/code <request>` | Coder only |
+| `/exec <command>` | Shell command (Critic-gated) |
+| `/memory search <q>` | Search memory |
+| `/cost` | Session API cost |
+| `/mcp` | MCP servers & skills |
+| `/skills` | List installed skills |
+| `/allow all|safe|ask` | Permission level |
+| `/gh pr <title>` | Push & create PR |
+| `/gh issues` | List issues |
+| `/gh clone <url>` | Clone repo |
+| `/bg run <cmd>` | Background task |
+| `/export [json]` | Export session |
+| `/redraw` | Fix display glitches |
 | `/clear` | Clear chat |
-| `/exit` | Exit Nexus |
+| `/status` | System status |
+| `/exit` | Exit |
 
-## Architecture
+## CLI Usage
 
-```
-User Input
-    │
-    ▼
-┌─────────────────┐
-│  Orchestrator    │  ← analyzes task, selects agents
-└────────┬────────┘
-         │
-         ├──► Memory Query (SQLite + Ollama embeddings)
-         │
-         ├──► Planner     (task decomposition)
-         ├──► Researcher  (information gathering)  ← has web_search tool
-         ├──► Coder       (code generation)        ← has file_tool + shell_exec
-         ├──► Executor    (shell commands)         ← has shell_exec via Critic gate
-         ├──► Critic      (safety reviews, interjections)
-         └──► Summarizer  (memory extraction)
-         │
-         ▼
-┌─────────────────┐
-│  Streaming UI    │  ← token-by-token output in terminal
-└────────┬────────┘
-         │
-         ▼
-┌─────────────────┐
-│  SQLite Persist  │  ← all messages saved for resume
-└─────────────────┘
+```bash
+nexus                        # New session
+nexus --sessions             # List saved sessions
+nexus --resume <id>          # Resume by ID
+nexus --resume-no 1          # Resume newest
+nexus --version              # Show version
+nexus-update check           # Check for updates
+nexus-update install         # Update to latest
 ```
 
-### Tool System
+## Agent Tools
 
-Agents with `coding`, `command_execution`, or `research` capabilities get access to tools:
+Agents with `coding`, `command_execution`, or `research` capabilities get:
 
-| Tool | Description | Parameters |
-|------|-------------|------------|
-| `shell_exec` | Execute shell commands (Critic-gated) | `command` |
-| `file_tool` | Read/write/list files | `action`, `path`, `content` |
-| `web_search` | Search the web via DuckDuckGo | `query` |
+| Tool | Description |
+|------|-------------|
+| `shell_exec` | Execute shell commands (Critic-gated) |
+| `file_tool` | Read/write/list files |
+| `web_search` | Search the web |
+| `github_create_pr` | Create pull request |
+| `github_create_issue` | Create issue |
+| `github_clone` | Clone repository |
+| `github_list_issues` | List open issues |
+| `background_run` | Run command in background |
 
-Tools are called via native function calling (OpenAI/DeepSeek), prompt-based JSON (Anthropic), or Ollama native tools.
+## Built-in Agents
 
-### Built-in Agents
+| Agent | Role | Default Provider | Tools |
+|-------|------|-----------------|-------|
+| Orchestrator | Task analysis | defaultProvider | — |
+| Planner | Task decomposition | ollama / llama3.2 | — |
+| Researcher | Information gathering | gemini / gemini-1.5-pro | web_search |
+| Coder | Code generation | anthropic / claude-sonnet-4 | file, shell, github |
+| Executor | Command execution | ollama / llama3.2 | shell |
+| Critic | Security review | gemini / gemini-1.5-flash | — |
+| Summarizer | Memory extraction | ollama / llama3.2 | — |
 
-| Agent | Role | Default Provider | Tools | Priority |
-|-------|------|-----------------|-------|----------|
-| Orchestrator | Task analysis & coordination | defaultProvider | — | 0 |
-| Planner | Task decomposition | ollama / llama3.2 | — | 1 |
-| Researcher | Information gathering | gemini / gemini-1.5-pro | web_search | 2 |
-| Coder | Code generation | anthropic / claude-sonnet-4 | file_tool, shell_exec | 3 |
-| Executor | Command execution | ollama / llama3.2 | shell_exec | 4 |
-| Critic | Security review & gating | gemini / gemini-1.5-flash | — | 6 |
-| Summarizer | Memory extraction | ollama / llama3.2 | — | 7 |
+## Providers
 
-### Provider Support
-
-| Provider | ID | Key Required | Function Calling | Notes |
-|----------|----|-------------|-----------------|-------|
-| OpenAI | `openai` | Yes | Native | GPT-4o, o1, etc. |
-| Anthropic | `anthropic` | Yes | Prompt-based | Claude Sonnet, Opus, Haiku |
-| Google Gemini | `gemini` | Yes | Native | Gemini 1.5/2.0 series |
-| DeepSeek | `deepseek` | Yes | Native | deepseek-chat, deepseek-reasoner |
-| Ollama | `ollama` | No | Native | Local models via Ollama |
-| Groq | `groq` | Yes | Native | Fast LPU inference |
-| Fireworks AI | `fireworks` | Yes | Native | Serverless OSS models |
-| LM Studio | `lmstudio` | No | — | Local inference |
-| Z.AI | `zai` | Yes | Native | GLM series |
-
-All providers implement a single `LLMProvider` interface with `chat()`, `chatWithTools()`, `stream()`, and `listModels()`.
-
-### Embedding Service
-
-- **Primary**: Ollama `nomic-embed-text` (768-dimensional semantic vectors)
-- **Fallback**: Hash-based bag-of-words (384-dimensional, no API required)
-- **Auto-detection**: Checks Ollama availability at startup, caches result
-- **Batch support**: Batch embedding for bulk operations
-
-### Session Persistence
-
-Every conversation is stored in SQLite (`~/.nexus/memory.db`):
-
-- **`sessions` table**: id, summary, timestamps, message count
-- **`session_messages` table**: every message with agent_id, role, content, timestamp
-- **Resume flow**: load all messages → restore panel history → continue chatting
-- **Numbered listing**: newest session = #1, resume by number or ID
-
-### Critic Safety System
-
-Every shell command executed via `/exec` or agent tool calls passes through the Critic agent:
-
-```
-Command → Critic reviews → APPROVED → executes
-                          → REJECTED:INFO     (minor concern)
-                          → REJECTED:WARNING  (moderate risk)
-                          → REJECTED:DANGER   (blocked, do not run)
-```
-
-Disable with `criticApproval: false` in config.
-
-### Doctor Report
-
-`/doctor` or programmatic `orchestrator.runDoctor()` returns:
-
-```
-Overall: 🟢 HEALTHY / 🟡 DEGRADED / 🔴 UNHEALTHY
-├── Providers: connection status + model count per provider
-├── Agents: provider wired, tool count per agent
-├── Embedding: Ollama available or hash fallback
-├── Memory: operational status
-├── Tools: registration status
-└── Sessions: active session ID + total persisted
-```
+| Provider | ID | Function Calling |
+|----------|----|-----------------|
+| OpenAI | `openai` | Native |
+| Anthropic | `anthropic` | Prompt-based |
+| Google Gemini | `gemini` | Native |
+| DeepSeek | `deepseek` | Native |
+| Ollama | `ollama` | Native |
+| Groq | `groq` | Native |
+| Fireworks | `fireworks` | Native |
+| LM Studio | `lmstudio` | — |
+| Z.AI | `zai` | Native |
 
 ## Custom Agents
 
-Define custom agents in `~/.nexus/agents.yaml`:
+Via wizard (recommended):
+```
+/new agent
+```
 
+Or `~/.nexus/agents.yaml`:
 ```yaml
 agents:
   - id: devops
     name: DevOps Engineer
-    role: Infrastructure and deployment specialist
+    role: Infrastructure & deployment
     provider: deepseek
     model: deepseek-chat
-    systemPrompt: |
-      You are a DevOps engineer. You handle CI/CD, Docker, Kubernetes,
-      and cloud infrastructure. Be practical and security-conscious.
-    capabilities:
-      - coding
-      - command_execution
+    systemPrompt: You handle CI/CD and cloud infrastructure.
+    capabilities: [coding, command_execution]
     priority: 5
 ```
 
-Custom agents with `command_execution` or `coding` capabilities automatically get tool access.
-
-## Configuration Reference
+## Configuration
 
 ### `~/.nexus/config.yaml`
-
 ```yaml
-providers:           # List of LLM providers
+providers:
   - id: deepseek
-    apiKey: ${DEEP...Y}
-    baseUrl: https://api.deepseek.com  # optional override
-defaultProvider: deepseek
+    apiKey: ${DEEPSEEK_API_KEY}defaultProvider: deepseek
 defaultModel: deepseek-chat
-memoryPath: ~/.nexus/memory.db
 criticApproval: true
 ```
 
 ### `~/.nexus/profile.yaml`
-
 ```yaml
 language: en
-preferredProviders: [deepseek]
+responseStyle: detailed
 preferredModels:
   deepseek: deepseek-chat
-responseStyle: detailed    # short | detailed | technical
-projectContexts:
-  - path: /home/user/my-project
-    description: My web app
-    techStack: [typescript, react, node]
-    lastAccessed: 1719000000000
-shortcuts: {}
 ```
+
+### `~/.nexus/agents.yaml`
+```yaml
+agents:
+  - id: my-agent
+    name: My Agent
+    role: Custom role
+    provider: deepseek
+    model: deepseek-chat
+    systemPrompt: "You are..."
+    capabilities: [thinking, coding]
+    priority: 5
+```
+
+## Skills
+
+Create custom skills in `~/.nexus/skills/<name>/SKILL.md`:
+
+```markdown
+---
+name: my-skill
+description: Does something useful
+category: tools
+---
+
+## Instructions
+Step by step guide...
+```
+
+Agents discover skills automatically. Use `/skills` to list.
 
 ## Development
 
 ```bash
-pnpm dev          # run with tsx (hot reload on save with --watch)
-pnpm build        # compile TypeScript
-pnpm typecheck    # type-check only (no emit)
-pnpm clean        # remove dist/
-```
+pnpm dev          # Run with hot reload
+pnpm build        # Compile TypeScript
+pnpm typecheck    # Type check only
+pnpm clean        # Remove dist/
 
-### Running Tests
-
-```bash
-# Mock tests (no API keys needed)
-npx tsx tests/critic-approval.ts
-
-# End-to-end tests (requires configured DeepSeek provider)
-npx tsx tests/end-to-end.ts
+# Tests
+npx tsx tests/critic-approval.ts   # Mock tests
+npx tsx tests/end-to-end.ts        # E2E (needs DeepSeek)
 ```
 
 ### Tech Stack
 
 - **Runtime**: Node.js 18+
-- **Language**: TypeScript 5.6 (strict mode)
-- **CLI Framework**: Ink 5 (React for terminals)
+- **Language**: TypeScript 5.6 (strict)
+- **CLI**: Ink 5 (React for terminal)
 - **LLM SDKs**: openai, @anthropic-ai/sdk, @google/generative-ai, ollama
 - **Storage**: better-sqlite3 (WAL mode)
-- **Embeddings**: Ollama nomic-embed-text (primary), hash-based (fallback)
-- **Config**: YAML (via `yaml` package)
+- **Embeddings**: Ollama nomic-embed-text / hash fallback
+- **Config**: YAML
 - **Shell**: execa
 
 ## License
