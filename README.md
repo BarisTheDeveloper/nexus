@@ -29,14 +29,24 @@ nexus-update install
 
 ## Quick Start
 
-### 1. Add a provider
+First run opens an interactive setup wizard — pick your provider with arrow keys, enter your API key, done.
+
+```bash
+nexus
+# → Setup wizard guides you through provider selection
+# → Arrow keys to navigate, Enter to select
+# → That's it. Start chatting.
+```
+
+Or add providers later:
 
 ```
-nexus
 /new provider
 ```
 
-Or manually create `~/.nexus/config.yaml`:
+Manual config at `~/.nexus/config.yaml`:
+
+```yaml
 
 ```yaml
 providers:
