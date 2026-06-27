@@ -4,6 +4,7 @@ import { render } from "ink";
 import meow from "meow";
 import { Orchestrator } from "../core/Orchestrator.js";
 import { ChatPanel } from "./panels/ChatPanel.js";
+import { SetupWizard } from "./panels/SetupWizard.js";
 import { ensureNexusDir } from "../config/ConfigLoader.js";
 
 // Ensure config directory exists
@@ -113,7 +114,16 @@ async function main() {
     return;
   }
 
-  // Default: start new session
+  // Default: check if first run (no real config)
+  const provInfo = orchestrator.getProvidersInfo();
+  if (provInfo.length === 0) {
+    const { waitUntilExit } = render(<SetupWizard onComplete={() => {}} />);
+    await waitUntilExit();
+    const newOrch = new Orchestrator();
+    render(<ChatPanel orchestrator={newOrch} />);
+    return;
+  }
+
   render(<ChatPanel orchestrator={orchestrator} />);
 }
 
