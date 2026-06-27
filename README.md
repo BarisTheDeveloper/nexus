@@ -252,4 +252,4 @@ npx tsx tests/end-to-end.ts        # E2E (needs DeepSeek)
 
 ## License
 
-MIT
+GPL
