@@ -27,6 +27,14 @@ nexus-update check
 nexus-update install
 ```
 
+Uninstall:
+
+```bash
+nexus-update uninstall
+# → asks "Type 'yes' to confirm"
+# → removes ~/.nexus/ + npm package
+```
+
 ## Quick Start
 
 First run opens an interactive setup wizard — pick your provider with arrow keys, enter your API key, done.
@@ -124,6 +132,7 @@ nexus --resume-no 1          # Resume newest
 nexus --version              # Show version
 nexus-update check           # Check for updates
 nexus-update install         # Update to latest
+nexus-update uninstall       # Remove everything
 ```
 
 ## Agent Tools
