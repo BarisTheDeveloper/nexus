@@ -150,7 +150,11 @@ export function ChatPanel({ orchestrator }: ChatPanelProps) {
     };
 
     const handleFinalOutput = () => setStatus("complete");
-    const handleError = (error: Error) => setStatus(`error: ${error.message}`);
+    const handleError = (error: Error) => {
+      // Mask API keys in error messages
+      const msg = error.message.replace(/(sk-[a-zA-Z0-9]{10})[a-zA-Z0-9]+/g, "***NED");
+      setStatus(`error: ${msg}`);
+    };
 
     orchestrator.on("agent-speaking", handleAgentSpeaking);
     orchestrator.on("agent-streaming", handleAgentStreaming);
