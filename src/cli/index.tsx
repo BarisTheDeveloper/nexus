@@ -6,6 +6,9 @@ import { Orchestrator } from "../core/Orchestrator.js";
 import { ChatPanel } from "./panels/ChatPanel.js";
 import { SetupWizard } from "./panels/SetupWizard.js";
 import { ensureNexusDir } from "../config/ConfigLoader.js";
+import { existsSync } from "node:fs";
+import { homedir } from "node:os";
+import { join } from "node:path";
 
 // Ensure config directory exists
 ensureNexusDir();
@@ -50,6 +53,16 @@ const cli = meow(
 );
 
 async function main() {
+  // Check if this is first run (no config yet)
+  const configPath = join(homedir(), ".nexus", "config.yaml");
+  const isFirstRun = !existsSync(configPath);
+
+  if (isFirstRun) {
+    // Show setup wizard first
+    const { waitUntilExit } = render(<SetupWizard onComplete={() => {}} />);
+    await waitUntilExit();
+  }
+
   const orchestrator = new Orchestrator();
 
   // Handle --sessions flag
@@ -114,16 +127,7 @@ async function main() {
     return;
   }
 
-  // Default: check if first run (no real config)
-  const provInfo = orchestrator.getProvidersInfo();
-  if (provInfo.length === 0) {
-    const { waitUntilExit } = render(<SetupWizard onComplete={() => {}} />);
-    await waitUntilExit();
-    const newOrch = new Orchestrator();
-    render(<ChatPanel orchestrator={newOrch} />);
-    return;
-  }
-
+  // Default: start chat
   render(<ChatPanel orchestrator={orchestrator} />);
 }
 
