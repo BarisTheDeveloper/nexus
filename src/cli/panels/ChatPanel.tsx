@@ -1155,31 +1155,21 @@ export function ChatPanel({ orchestrator }: ChatPanelProps) {
 
   return (
     <Box flexDirection="column" height="100%">
-      {/* ASCII art header — boxed like Hermes */}
-      <Box borderStyle="round" borderColor="cyan" flexDirection="column" paddingX={2} paddingY={1}>
-        <Box flexDirection="row" gap={2}>
-          <Box flexDirection="column">
-            <Text color="cyan" bold>.__   __.  __________   ___  __    __       _______.</Text>
-            <Text color="cyan" bold>|  \ |  | |   ____\  \ /  / |  |  |  |     /       |</Text>
-            <Text color="cyan" bold>|   \|  | |  |__   \  V  /  |  |  |  |    |   (----`</Text>
-            <Text color="cyan" bold>|  . `  | |   __|   {'>'}   {'<'}   |  |  |  |     \   \    </Text>
-            <Text color="cyan" bold>|  |\   | |  |____ /  .  \  |  `--'  | .----)   |   </Text>
-            <Text color="cyan" bold>|__| \__| |_______/__/ \__\  \______/  |_______/    </Text>
-          </Box>
-          <Box flexDirection="column" justifyContent="center">
-            <Text color="gray">Multi-LLM Orchestrated CLI</Text>
-            <Text color="gray" dimColor>6 agents · 9 providers · streaming</Text>
-          </Box>
-        </Box>
-        <Box marginTop={1}>
-          <Text color={statusColor}>● {status}{thinkingDots}</Text>
+      {/* Header — compact, clean */}
+      <Box borderStyle="round" borderColor="cyan" flexDirection="column" paddingX={1} paddingY={0}>
+        <Box>
+          <Text color="cyan" bold> NEXUS </Text>
+          <Text color="gray" dimColor> ▸ Multi-Agent CLI</Text>
           <Box marginLeft={2}>
-            <Text color="gray" dimColor>Tab: complete  ↑↓: navigate  /: commands  Esc: clear</Text>
+            <Text color={statusColor}>● {status}{thinkingDots}</Text>
+          </Box>
+          <Box marginLeft={2}>
+            <Text color="gray" dimColor>Tab:complete ↑↓:nav /:cmd</Text>
           </Box>
         </Box>
       </Box>
 
-      {/* Agent status bar */}
+      {/* Agent status — icons only */}
       <AgentStatusPanel agents={agents} status={status} />
 
       {/* Messages */}
@@ -1187,19 +1177,21 @@ export function ChatPanel({ orchestrator }: ChatPanelProps) {
         {messages.map((msg) => (
           <Box key={msg.id} flexDirection="column" marginY={0}>
             <Box>
-              <Text bold color={getAgentColor(msg.agentId)}>[{msg.agentId}]</Text>
-              {msg.role === "interjection" && <Text color="yellow"> (interjection)</Text>}
-              {msg.role === "tool" && <Text color="gray"> tool</Text>}
+              <Text bold color={getAgentColor(msg.agentId)}>
+                {msg.agentId === "user" ? "▸" : "▹"} {msg.agentId}
+              </Text>
+              {msg.role === "interjection" && <Text color="yellow" dimColor> ↳</Text>}
+              {msg.role === "tool" && <Text color="gray" dimColor> ⚙</Text>}
               {msg.isPasted && <Text color="yellow"> 📋</Text>}
               {msg.isStreaming && <Text color="gray"> ▌</Text>}
-              {msg.tokensUsed ? <Text color="gray" dimColor> ~{msg.tokensUsed} tok</Text> : null}
-              {msg.elapsedMs ? <Text color="gray" dimColor> {msg.elapsedMs < 1000 ? `${msg.elapsedMs}ms` : `${(msg.elapsedMs / 1000).toFixed(1)}s`}</Text> : null}
+              {msg.tokensUsed ? <Text color="gray" dimColor> {msg.tokensUsed}t</Text> : null}
+              {msg.elapsedMs ? <Text color="gray" dimColor> {msg.elapsedMs < 1000 ? `${msg.elapsedMs}ms` : `${(msg.elapsedMs/1000).toFixed(1)}s`}</Text> : null}
             </Box>
-            <Box marginLeft={2}>
+            <Box paddingLeft={2}>
               {msg.isPasted ? (
                 <Box flexDirection="column">
                   <Text color="yellow" bold>{msg.pasteSummary ?? msg.content}</Text>
-                  <Text color="gray" dimColor>  └─ Content stored, not displayed inline</Text>
+                  <Text color="gray" dimColor>  └─ Content stored</Text>
                 </Box>
               ) : (
                 msg.content.includes("**") || msg.content.includes("```") || msg.content.startsWith("#") || msg.content.startsWith("- ") ? (
@@ -1213,31 +1205,23 @@ export function ChatPanel({ orchestrator }: ChatPanelProps) {
         ))}
       </Box>
 
-      {/* Help overlay */}
+      {/* Help overlay — compact 2-col */}
       {showHelp && (
-        <Box borderStyle="round" borderColor="yellow" padding={1} flexDirection="column">
-          <Text bold underline>Commands:</Text>
-          <Text>/agents    — List active agents and their models</Text>
-          <Text>/providers — Show configured provider status</Text>
-          <Text>/model     — Change agent model: /model &lt;agent&gt; &lt;model&gt;</Text>
-          <Text>/config    — View/change configuration: show | model | agent</Text>
-          <Text>/models    — List models: /models [provider] (fetches from API)</Text>
-          <Text>/doctor    — Run system health check</Text>
-          <Text>/sessions  — List saved sessions</Text>
-          <Text>/resume    — Resume saved session: /resume &lt;id-or-number&gt;</Text>
-          <Text>/profile   — Show user profile settings</Text>
-          <Text>/exec      — Run shell command: /exec &lt;cmd&gt; (with Critic review)</Text>
-          <Text>/think     — Use Planner + Critic: /think &lt;query&gt;</Text>
-          <Text>/code      — Use only Coder: /code &lt;request&gt;</Text>
-          <Text>/memory    — Memory: search, clear, list</Text>
-          <Text>/export    — Export session (add 'json' for JSON format)</Text>
-          <Text>/status    — Show system status</Text>
-          <Text>/clear     — Clear chat</Text>
-          <Text>/exit      — Exit Nexus</Text>
-          <Text>/new       — 🧙 Wizard: /new agent | /new provider (step by step)</Text>
-          <Text>/help      — Toggle this help</Text>
-          <Box marginTop={1}>
-            <Text color="cyan" dimColor>Tab to autocomplete  |  ↑↓ to navigate suggestions  |  Esc to clear</Text>
+        <Box borderStyle="round" borderColor="yellow" paddingX={1} flexDirection="row" gap={2}>
+          <Box flexDirection="column">
+            <Text bold underline>Commands</Text>
+            <Text>/agents /providers /models /model</Text>
+            <Text>/doctor /sessions /resume /export</Text>
+            <Text>/think /code /exec /memory</Text>
+            <Text>/config /new /allow /cost</Text>
+            <Text>/mcp /skills /gh /bg</Text>
+          </Box>
+          <Box flexDirection="column">
+            <Text bold underline>Shortcuts</Text>
+            <Text>/clear /redraw /status /exit</Text>
+            <Text>/help (toggle this)</Text>
+            <Text>Tab:autocomplete ↑↓:navigate</Text>
+            <Text>/:show all commands</Text>
           </Box>
         </Box>
       )}
