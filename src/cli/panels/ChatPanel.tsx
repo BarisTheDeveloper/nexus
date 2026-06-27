@@ -1091,6 +1091,12 @@ export function ChatPanel({ orchestrator }: ChatPanelProps) {
         exit();
         break;
 
+      case "/uninstall": {
+        setMessages((prev) => [...prev, { id: ++msgCounter.current, agentId: "system", role: "speaker",
+          content: "To uninstall Nexus:\n\n  nexus-update uninstall\n\nRemoves ~/.nexus/ + npm package.", timestamp: Date.now() }]);
+        break;
+      }
+
       case "/new": {
         const what = parts[1]?.toLowerCase();
         if (what === "agent") {

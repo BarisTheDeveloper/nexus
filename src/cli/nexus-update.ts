@@ -1,9 +1,20 @@
 #!/usr/bin/env node
 /**
  * nexus-update — self-updater for the Nexus CLI.
- * Checks npm for latest version and updates if needed.
+ * Also handles: check, install, uninstall
  */
 import { execa } from "execa";
+import { existsSync, rmSync } from "node:fs";
+import { homedir } from "node:os";
+import { join } from "node:path";
+import { createInterface } from "node:readline";
+
+async function ask(question: string): Promise<string> {
+  const rl = createInterface({ input: process.stdin, output: process.stdout });
+  return new Promise((resolve) => {
+    rl.question(question, (answer) => { rl.close(); resolve(answer.trim()); });
+  });
+}
 
 async function getLatestVersion(): Promise<string> {
   const { stdout } = await execa("npm", ["view", "@baristhedeveloper/nexus", "version"], { timeout: 15_000 });
@@ -48,6 +59,42 @@ async function main() {
     return;
   }
 
+  if (cmd === "uninstall") {
+    console.log("⚠️  This will remove ALL Nexus data:");
+    console.log("   - ~/.nexus/ (config, memory, sessions, skills)");
+    console.log("   - npm package @baristhedeveloper/nexus");
+    console.log("");
+    const answer = await ask("Type 'yes' to confirm: ");
+    if (answer.toLowerCase() !== "yes") {
+      console.log("❌ Uninstall cancelled.");
+      return;
+    }
+
+    // Remove ~/.nexus
+    const nexusDir = join(homedir(), ".nexus");
+    if (existsSync(nexusDir)) {
+      try {
+        rmSync(nexusDir, { recursive: true, force: true });
+        console.log("✅ Removed ~/.nexus/");
+      } catch (error) {
+        console.log("⚠️  Could not remove ~/.nexus/:", error instanceof Error ? error.message : error);
+      }
+    } else {
+      console.log("  ~/.nexus/ not found (already clean)");
+    }
+
+    // Remove npm package
+    try {
+      await execa("npm", ["uninstall", "-g", "@baristhedeveloper/nexus"], { stdio: "inherit", timeout: 60_000 });
+      console.log("✅ Uninstalled @baristhedeveloper/nexus");
+    } catch (error) {
+      console.log("⚠️  npm uninstall warning:", error instanceof Error ? error.message : error);
+    }
+
+    console.log("\n✅ Nexus completely removed. Goodbye!");
+    return;
+  }
+
   // Default: check
   const [current, latest] = await Promise.all([getCurrentVersion(), getLatestVersion()]);
   console.log(`Nexus CLI`);
@@ -55,6 +102,7 @@ async function main() {
   console.log(`  Latest:    v${latest}`);
   if (current !== latest && current !== "unknown") {
     console.log(`\n📦 Update available! Run: nexus-update install`);
+    console.log(`🗑  Uninstall: nexus-update uninstall`);
   }
 }
 
