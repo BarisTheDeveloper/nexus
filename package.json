@@ -1,11 +1,12 @@
 {
   "name": "@baristhedeveloper/nexus",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Multi-LLM Orchestrated CLI — multi-model, role-based AI panel with persistent memory, MCP & skill support",
   "type": "module",
   "main": "dist/cli/index.js",
   "bin": {
-    "nexus": "dist/cli/index.js"
+    "nexus": "dist/cli/index.js",
+    "nexus-update": "dist/cli/nexus-update.js"
   },
   "files": [
     "dist/",

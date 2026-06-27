@@ -14,6 +14,9 @@ import { ProfileManager } from "../memory/ProfileManager.js";
 import { EmbeddingService } from "../memory/EmbeddingService.js";
 import { AgentWorkspace } from "./AgentWorkspace.js";
 import { MCPRegistry } from "./MCPRegistry.js";
+import { CostTracker } from "./CostTracker.js";
+import { BackgroundAgent } from "./BackgroundAgent.js";
+import { GitHubAgent } from "./GitHubAgent.js";
 
 export interface OrchestratorEvents {
   "agent-speaking": (agentId: string, content: string) => void;
@@ -51,6 +54,9 @@ export class Orchestrator extends EventEmitter {
   private workspace: AgentWorkspace;
   private permissionLevel: "all" | "safe" | "ask" = "ask";
   private mcpRegistry: MCPRegistry;
+  private costTracker: CostTracker;
+  private backgroundAgent: BackgroundAgent;
+  private githubAgent: GitHubAgent;
 
   constructor() {
     super();
@@ -62,6 +68,9 @@ export class Orchestrator extends EventEmitter {
     this.profileManager = new ProfileManager();
     this.workspace = new AgentWorkspace();
     this.mcpRegistry = new MCPRegistry();
+    this.costTracker = new CostTracker();
+    this.backgroundAgent = new BackgroundAgent();
+    this.githubAgent = new GitHubAgent();
     this.initialize();
   }
 
@@ -521,6 +530,9 @@ When analyzing a task, consider:
           const msg: AgentMessage = { agentId: agent.id, role: "speaker", content, timestamp: Date.now(),
             tokensUsed: (result?.status === "fulfilled" ? (result.value as any).tokens : 0) ?? 0,
             elapsedMs: (result?.status === "fulfilled" ? (result.value as any).elapsed : 0) ?? 0 };
+          // Track cost
+          const tokens = (result?.status === "fulfilled" ? (result.value as any).tokens : 0) ?? 0;
+          if (tokens > 0) this.costTracker.track(agent.id, agent.config.model, tokens);
           this.panelHistory.push(msg);
           this.sessionManager.addMessage(msg);
           this.emit("agent-speaking", agent.id, content);
@@ -796,6 +808,10 @@ When analyzing a task, consider:
   getPermission(): "all" | "safe" | "ask" {
     return this.permissionLevel;
   }
+
+  getCostTracker(): CostTracker { return this.costTracker; }
+  getBackgroundAgent(): BackgroundAgent { return this.backgroundAgent; }
+  getGitHubAgent(): GitHubAgent { return this.githubAgent; }
 
   /**
    * MCP & Skills registry.

@@ -1038,6 +1038,51 @@ export function ChatPanel({ orchestrator }: ChatPanelProps) {
         break;
       }
 
+      case "/cost": {
+        setMessages((prev) => [...prev, { id: ++msgCounter.current, agentId: "system", role: "speaker",
+          content: orchestrator.getCostTracker().getSummary(), timestamp: Date.now() }]);
+        break;
+      }
+
+      case "/bg": {
+        const sub = parts[1]?.toLowerCase();
+        const bg = orchestrator.getBackgroundAgent();
+        if (sub === "run" && parts[2]) {
+          const cmd = parts.slice(2).join(" ");
+          const id = await bg.submit(cmd, cmd.slice(0, 60));
+          setMessages((prev) => [...prev, { id: ++msgCounter.current, agentId: "system", role: "speaker",
+            content: `⏳ Background task [${id}] started: ${cmd.slice(0, 60)}`, timestamp: Date.now() }]);
+        } else {
+          setMessages((prev) => [...prev, { id: ++msgCounter.current, agentId: "system", role: "speaker",
+            content: bg.getSummary() + "\n\nUsage: /bg run <command>", timestamp: Date.now() }]);
+        }
+        break;
+      }
+
+      case "/gh": {
+        const sub = parts[1]?.toLowerCase();
+        const gh = orchestrator.getGitHubAgent();
+        if (sub === "pr" && parts[2]) {
+          const title = parts[2]!;
+          const body = parts.slice(3).join(" ") || "Automated PR from Nexus";
+          const result = await gh.pushAndPR(title, body);
+          setMessages((prev) => [...prev, { id: ++msgCounter.current, agentId: "system", role: "speaker",
+            content: result.success ? `✅ ${result.message}` : `❌ ${result.message}`, timestamp: Date.now() }]);
+        } else if (sub === "issues") {
+          const issues = await gh.listIssues();
+          setMessages((prev) => [...prev, { id: ++msgCounter.current, agentId: "system", role: "speaker",
+            content: issues.join("\n") || "No issues", timestamp: Date.now() }]);
+        } else if (sub === "clone" && parts[2]) {
+          const result = await gh.clone(parts[2]!);
+          setMessages((prev) => [...prev, { id: ++msgCounter.current, agentId: "system", role: "speaker",
+            content: result.success ? `✅ Cloned to ${result.path}` : `❌ ${result.error}`, timestamp: Date.now() }]);
+        } else {
+          setMessages((prev) => [...prev, { id: ++msgCounter.current, agentId: "system", role: "speaker",
+            content: "GitHub Agent:\n  /gh pr <title> [body]  — Push & create PR\n  /gh issues             — List open issues\n  /gh clone <url>         — Clone repo", timestamp: Date.now() }]);
+        }
+        break;
+      }
+
       case "/exit":
         exit();
         break;
