@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Box, Text, useInput } from "ink";
+import { Box, Text, useInput, useApp } from "ink";
 
 interface SetupWizardProps {
   onComplete: () => void;
@@ -18,6 +18,7 @@ const PROVIDER_TYPES = [
 ];
 
 export function SetupWizard({ onComplete }: SetupWizardProps) {
+  const { exit } = useApp();
   const [step, setStep] = useState<Step>("welcome");
   const [providerType, setProviderType] = useState("");
   const [providerKey, setProviderKey] = useState("");
@@ -51,6 +52,7 @@ export function SetupWizard({ onComplete }: SetupWizardProps) {
         case "test":
         case "done":
           onComplete();
+          exit();
           break;
       }
       return;
@@ -78,9 +80,7 @@ export function SetupWizard({ onComplete }: SetupWizardProps) {
   return (
     <Box flexDirection="column" borderStyle="double" borderColor="magenta" padding={2}>
       <Box flexDirection="column" marginBottom={1}>
-        <Text color="magenta" bold>╔╗╔╔═╗╦ ╦╦ ╦╔═╗</Text>
-        <Text color="magenta" bold>║║║║╣ ╚╦╝╚╦╝╚═╗</Text>
-        <Text color="magenta" bold>╝╚╝╚═╝ ╩  ╩ ╚═╝</Text>
+        <Text color="magenta" bold>NEXUS</Text>
         <Text color="gray">First Run Setup</Text>
       </Box>
 

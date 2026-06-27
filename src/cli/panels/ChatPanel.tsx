@@ -1169,10 +1169,8 @@ export function ChatPanel({ orchestrator }: ChatPanelProps) {
           <Text bold>
             <Text color="red">N</Text><Text color="yellow">E</Text><Text color="green">X</Text><Text color="cyan">U</Text><Text color="blue">S</Text>
           </Text>
-          <Text color="gray"> ▐ </Text>
-          <Text color="gray" bold>MULTI-AGENT TERMINAL</Text>
           <Box marginLeft={2}>
-            <Text color={statusColor} bold>■ {status.toUpperCase()}{thinkingDots}</Text>
+            <Text color={statusColor}>● {status}{thinkingDots}</Text>
           </Box>
         </Box>
       </Box>
