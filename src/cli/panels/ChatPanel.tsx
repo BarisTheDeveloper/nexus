@@ -1153,56 +1153,61 @@ export function ChatPanel({ orchestrator }: ChatPanelProps) {
 
   // ─── Render ─────────────────────────────────────────────
 
+  const rainbowColors = ["red", "yellow", "green", "cyan", "blue", "magenta"] as const;
+
   return (
     <Box flexDirection="column" height="100%">
-      {/* Header — compact, clean */}
-      <Box borderStyle="round" borderColor="cyan" flexDirection="column" paddingX={1} paddingY={0}>
+      {/* BRUTALIST HEADER — thick borders, rainbow title */}
+      <Box borderStyle="double" borderColor="magenta" flexDirection="column" paddingX={1}>
         <Box>
-          <Text color="cyan" bold> NEXUS </Text>
-          <Text color="gray" dimColor> ▸ Multi-Agent CLI</Text>
+          <Text bold>
+            <Text color="red">N</Text><Text color="yellow">E</Text><Text color="green">X</Text><Text color="cyan">U</Text><Text color="blue">S</Text>
+          </Text>
+          <Text color="gray"> ▐ </Text>
+          <Text color="gray" bold>MULTI-AGENT TERMINAL</Text>
           <Box marginLeft={2}>
-            <Text color={statusColor}>● {status}{thinkingDots}</Text>
-          </Box>
-          <Box marginLeft={2}>
-            <Text color="gray" dimColor>Tab:complete ↑↓:nav /:cmd</Text>
+            <Text color={statusColor} bold>■ {status.toUpperCase()}{thinkingDots}</Text>
           </Box>
         </Box>
       </Box>
 
-      {/* Agent status — icons only */}
-      <AgentStatusPanel agents={agents} status={status} />
+      {/* Agent status bar — brutal */}
+      <Box borderStyle="single" borderColor="gray" paddingX={1}>
+        <Box gap={1} flexWrap="wrap">
+          {agents.slice(0, 8).map((a, i) => (
+            <Text key={a.id} color={isThinking && status !== "idle" ? rainbowColors[i % 6] : "gray"}>
+              {isThinking ? "▣" : "□"} {a.id.slice(0, 10)}
+            </Text>
+          ))}
+        </Box>
+      </Box>
 
-      {/* Messages */}
+      {/* Messages — alternating colors */}
       <Box flexDirection="column" flexGrow={1} paddingX={1}>
-        {messages.map((msg) => (
+        {messages.map((msg, idx) => {
+          const lineColor = rainbowColors[idx % 6];
+          return (
           <Box key={msg.id} flexDirection="column" marginY={0}>
             <Box>
-              <Text bold color={getAgentColor(msg.agentId)}>
-                {msg.agentId === "user" ? "▸" : "▹"} {msg.agentId}
+              <Text bold color={msg.agentId === "user" ? "green" : lineColor}>
+                {msg.agentId === "user" ? "▸" : "▹"} {msg.agentId.toUpperCase()}
               </Text>
               {msg.role === "interjection" && <Text color="yellow" dimColor> ↳</Text>}
               {msg.role === "tool" && <Text color="gray" dimColor> ⚙</Text>}
-              {msg.isPasted && <Text color="yellow"> 📋</Text>}
-              {msg.isStreaming && <Text color="gray"> ▌</Text>}
               {msg.tokensUsed ? <Text color="gray" dimColor> {msg.tokensUsed}t</Text> : null}
-              {msg.elapsedMs ? <Text color="gray" dimColor> {msg.elapsedMs < 1000 ? `${msg.elapsedMs}ms` : `${(msg.elapsedMs/1000).toFixed(1)}s`}</Text> : null}
+              {msg.elapsedMs ? <Text color="gray" dimColor> {(msg.elapsedMs/1000).toFixed(1)}s</Text> : null}
             </Box>
             <Box paddingLeft={2}>
               {msg.isPasted ? (
                 <Box flexDirection="column">
                   <Text color="yellow" bold>{msg.pasteSummary ?? msg.content}</Text>
-                  <Text color="gray" dimColor>  └─ Content stored</Text>
                 </Box>
               ) : (
-                msg.content.includes("**") || msg.content.includes("```") || msg.content.startsWith("#") || msg.content.startsWith("- ") ? (
-                  <MarkdownText key={msg.id}>{msg.content}</MarkdownText>
-                ) : (
-                  <Text key={msg.id}>{msg.content}</Text>
-                )
+                <Text>{msg.content}</Text>
               )}
             </Box>
           </Box>
-        ))}
+        )})}
       </Box>
 
       {/* Help overlay — compact 2-col */}
