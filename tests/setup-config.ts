@@ -12,8 +12,8 @@ if (!existsSync(nexusDir)) {
 
 const config = {
   providers: [
-    { id: "deepseek", apiKey: "sk-fa0f7b634d28473798aeb4a9ca0fc036" },
-    { id: "zai", apiKey: "${ZAI_API_KEY}" },
+    { id: "deepseek", apiKey: process.env.DEEPSEEK_API_KEY ?? "YOUR_DEEPSEEK_KEY" },
+    { id: "zai", apiKey: process.env.ZAI_API_KEY ?? "YOUR_ZAI_KEY" },
   ],
   defaultProvider: "deepseek",
   defaultModel: "deepseek-chat",
@@ -22,4 +22,3 @@ const config = {
 
 writeFileSync(configPath, stringify(config), "utf-8");
 console.log("Config written to:", configPath);
-console.log("Content:", stringify(config));
