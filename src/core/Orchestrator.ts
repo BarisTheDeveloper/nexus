@@ -61,7 +61,9 @@ export class Orchestrator extends EventEmitter {
   constructor() {
     super();
     this.embeddingService = new EmbeddingService();
-    this.toolRegistry = new ToolRegistry();
+    this.githubAgent = new GitHubAgent();
+    this.backgroundAgent = new BackgroundAgent();
+    this.toolRegistry = new ToolRegistry(this.githubAgent, this.backgroundAgent);
     this.memory = new NexusMemory();
     this.sessionManager = new SessionManager();
     this.sessionManager.setMemory(this.memory);  // wire persistence
@@ -69,8 +71,6 @@ export class Orchestrator extends EventEmitter {
     this.workspace = new AgentWorkspace();
     this.mcpRegistry = new MCPRegistry();
     this.costTracker = new CostTracker();
-    this.backgroundAgent = new BackgroundAgent();
-    this.githubAgent = new GitHubAgent();
     this.initialize();
   }
 
@@ -324,6 +324,31 @@ When analyzing a task, consider:
         return {
           query: { type: "string", description: "Search query" },
         };
+      case "github_create_pr":
+        return {
+          title: { type: "string", description: "PR title" },
+          body: { type: "string", description: "PR description" },
+        };
+      case "github_create_issue":
+        return {
+          title: { type: "string", description: "Issue title" },
+          body: { type: "string", description: "Issue body" },
+          labels: { type: "string", description: "Comma-separated labels" },
+          assignees: { type: "string", description: "Comma-separated usernames" },
+        };
+      case "github_clone":
+        return {
+          url: { type: "string", description: "GitHub repo URL" },
+          directory: { type: "string", description: "Target directory (optional)" },
+        };
+      case "github_list_issues":
+        return {
+          limit: { type: "number", description: "Max issues to list (default 10)" },
+        };
+      case "background_run":
+        return {
+          command: { type: "string", description: "Command to run in background" },
+        };
       default:
         return {};
     }
@@ -334,6 +359,11 @@ When analyzing a task, consider:
       case "shell_exec": return ["command"];
       case "file_tool": return ["action", "path"];
       case "web_search": return ["query"];
+      case "github_create_pr": return ["title"];
+      case "github_create_issue": return ["title"];
+      case "github_clone": return ["url"];
+      case "github_list_issues": return [];
+      case "background_run": return ["command"];
       default: return [];
     }
   }
